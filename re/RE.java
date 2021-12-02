@@ -14,6 +14,26 @@ public class RE implements REInterface{
         return null;
     }
 
+    private NFA regex() {
+        NFA term = term();
+
+        if (more() && peek() == '|') {
+            eat('|');
+            NFA regex = regex();
+        }
+        else {
+            return term;
+        }
+    }
+
+    private NFA term() {
+        NFA factor = new NFA();
+
+        while (more() && peek() != ')' && peek() != '|') {
+            NFA nextFactor = factor();
+        }
+    }
+
     private char peek() {
         return input.charAt(0);
     }
