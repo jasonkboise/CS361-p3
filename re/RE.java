@@ -52,7 +52,20 @@ public class RE implements REInterface{
         eat(c);
         return c;
     }
-
+    
+    private NFA root() {
+    
+       if (peek() == '(') {
+       eat('(');
+       NFA reg1 = regEx();
+       eat(')');
+       return reg1;
+       }
+       
+       return symbol(next));
+        
+    }
+    
     private boolean more() {
         return input.length() > 0;
     }
