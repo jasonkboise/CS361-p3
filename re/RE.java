@@ -62,7 +62,7 @@ public class RE implements REInterface{
        return reg1;
        }
        
-       return symbol(next));
+       return newNFA(next));
         
     }
     
