@@ -82,24 +82,14 @@ public class RE implements REInterface{
     }
     private NFA root() {
     
-<<<<<<< HEAD
         if (peek() == '(') {
         eat('(');
         NFA reg1 = regEx();
         eat(')');
         return reg1;
         }
-=======
-       if (peek() == '(') {
-       eat('(');
-       NFA reg1 = regEx();
-       eat(')');
-       }
-       
-       return newNFA(next));
->>>>>>> 3f5832bff57a7090c242d08ca681f1772a04eadd
         
-        return symbol(next));
+        return newNFA(next());
          
      }
     private boolean more() {
