@@ -4,9 +4,11 @@ import javax.management.RuntimeErrorException;
 
 public class RE implements REInterface{
     private String input;
+    private int count;
 
     public RE(String input) {
         this.input = input;
+        this.count = 0;
     }
 
     @Override
@@ -20,6 +22,21 @@ public class RE implements REInterface{
         if (more() && peek() == '|') {
             eat('|');
             NFA regex = regex();
+
+            NFA combined = new NFA();
+            String name = "q" + count++;
+            combined.addStartState(name);
+
+            combined.addNFAState(regex.getStates());
+            combined.addNFAState(term.getStates());
+
+            combined.addAbc(regex.getABC());
+            combined.addAbc(term.getABC());
+
+            combined.addTransition(name, 'e', regex.getStartState().getName());
+            combined.addTransition(name, 'e', term.getStartState().getName());
+
+            return combined;
         }
         else {
             return term;
@@ -31,7 +48,18 @@ public class RE implements REInterface{
 
         while (more() && peek() != ')' && peek() != '|') {
             NFA nextFactor = factor();
+            if (nextFactor.getStates().isEmpty()) {
+                factor = nextFactor;
+            }
+            else {
+                factor = concat(factor, nextFactor);
+            }
         }
+        return factor;
+    }
+
+    private NFA concat(NFA n1, NFA n2) {
+        String n2Start = n2.getStartState().getName();
     }
 
     private char peek() {
@@ -52,20 +80,28 @@ public class RE implements REInterface{
         eat(c);
         return c;
     }
-    
     private NFA root() {
     
+<<<<<<< HEAD
+        if (peek() == '(') {
+        eat('(');
+        NFA reg1 = regEx();
+        eat(')');
+        return reg1;
+        }
+=======
        if (peek() == '(') {
        eat('(');
        NFA reg1 = regEx();
        eat(')');
-       return reg1;
        }
        
-       return symbol(next));
+       return newNFA(next));
+>>>>>>> 3f5832bff57a7090c242d08ca681f1772a04eadd
         
-    }
-    
+        return symbol(next));
+         
+     }
     private boolean more() {
         return input.length() > 0;
     }
