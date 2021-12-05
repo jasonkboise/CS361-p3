@@ -1,6 +1,12 @@
 package re;
 
-import javax.management.RuntimeErrorException;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import fa.State;
+import fa.nfa.NFA;
+import fa.nfa.NFAState;
+
 
 public class RE implements REInterface{
     private String input;
@@ -13,7 +19,7 @@ public class RE implements REInterface{
 
     @Override
     public NFA getNFA() {
-        return null;
+        return regex();
     }
 
     private NFA regex() {
@@ -27,14 +33,15 @@ public class RE implements REInterface{
             String name = Integer.toString(count++);
             combined.addStartState(name);
 
-            combined.addNFAState(regex.getStates());
-            combined.addNFAState(term.getStates());
-
-            combined.addAbc(regex.getABC());
-            combined.addAbc(term.getABC());
-
-            combined.addTransition(name, 'e', regex.getStartState().getName());
+            combined.addNFAStates(term.getStates());
+            combined.addNFAStates(regex.getStates());
+            
             combined.addTransition(name, 'e', term.getStartState().getName());
+            combined.addTransition(name, 'e', regex.getStartState().getName());
+            
+            combined.addAbc(term.getABC());
+            combined.addAbc(regex.getABC());
+            
 
             return combined;
         }
@@ -48,7 +55,7 @@ public class RE implements REInterface{
 
         while (more() && peek() != ')' && peek() != '|') {
             NFA nextFactor = factor();
-            if (nextFactor.getStates().isEmpty()) {
+            if (factor.getStates().isEmpty()) {
                 factor = nextFactor;
             }
             else {
@@ -58,17 +65,96 @@ public class RE implements REInterface{
         return factor;
     }
 
+    private NFA factor() {
+
+        NFA base = base();
+        while (more() && peek() == '*') {
+            eat('*');
+            base = repetition(base);
+        }
+        return base;
+    }
+
+    private NFA repetition(NFA base) {
+        NFA nfa = new NFA();
+
+        String start = Integer.toString(count++);
+        nfa.addStartState(start);
+
+        String fin = Integer.toString(count++);
+        nfa.addFinalState(fin);
+
+        nfa.addNFAStates(base.getStates());
+
+        nfa.addTransition(start, 'e', fin);
+        nfa.addTransition(fin, 'e', base.getStartState().getName());
+        nfa.addTransition(start, 'e', base.getStartState().getName());
+
+        nfa.addAbc(base.getABC());
+
+        for (State state: base.getFinalStates()) {
+            nfa.addTransition(state.getName(), 'e', fin);
+
+            for (State state2: nfa.getFinalStates()) {
+                if(state2.getName().equals(state.getName())) {
+                    ((NFAState)state2).setNonFinal();
+                }
+            }
+        }
+
+        
+
+        return nfa;
+
+    }
+
     private NFA concat(NFA n1, NFA n2) {
-        Set<NFAState> n1Finals = n1.getFinalStates();
+        Set<State> n1Finals = n1.getFinalStates();
 
         n1.addNFAStates(n2.getStates());
+        
 
-        for (NFAState state: n1Finals) {
-            state.setNonFinal();
+        for (State state: n1Finals) {
+            ((NFAState)state).setNonFinal();
             n1.addTransition(state.getName(), 'e', n2.getStartState().getName());
         }
 
         n1.addAbc(n2.getABC());
+        return n1;
+    }
+
+    
+    
+    private NFA newNFA(char n) {
+        NFA nfa = new NFA();
+        
+        String start = Integer.toString(count++);
+        nfa.addStartState(start);
+        
+        String fin = Integer.toString(count++);
+        nfa.addFinalState(fin);
+
+        nfa.addTransition(start, n, fin);
+
+        Set<Character> abc;
+        abc = new LinkedHashSet<Character>();
+        abc.add(n);
+        nfa.addAbc(abc);
+        
+        return nfa;
+
+    }
+
+    private NFA base() {
+        if (peek() == '(') {
+            eat('(');
+            NFA reg1 = regex();
+            eat(')');
+            return reg1;
+        }
+        
+        return newNFA(next());
+         
     }
 
     private char peek() {
@@ -90,37 +176,6 @@ public class RE implements REInterface{
         return c;
     }
     
-    private NFA newNFA(char n) {
-        NFA newNFA = new NFA();
-        
-        String start = Integer.toString(count++);
-        nfa.addStartState(start);
-        
-        String final = Integer.toString(count++);
-        nfa.addFinalState(final);
-
-        nfa.addTransitions(start, n, final);
-
-        Set<Character> abc;
-        abc = new LinkedHashSet<Character>();
-        abc.add(n);
-        nfa.addAbc(abc);
-        
-        return nfa;
-
-    }
-
-    private NFA root() {
-        if (peek() == '(') {
-            eat('(');
-            NFA reg1 = regEx();
-            eat(')');
-            return reg1;
-        }
-        
-        return newNFA(next());
-         
-     }
     private boolean more() {
         return input.length() > 0;
     }
