@@ -7,21 +7,45 @@ import fa.State;
 import fa.nfa.NFA;
 import fa.nfa.NFAState;
 
+/**
+ * December 8th, 2021
+ * This Class parses a regular expression, 
+ * and creates an NFA using the input.
+ * @author Jason Kuphaldt, Connor Jackson
+ *
+ */
 
 public class RE implements REInterface{
     private String input;
     private int count;
 
-    public RE(String input) {
+    /**
+     * 
+     * @param input string that 
+     * represents the regular expression.
+     */
+        public RE(String input) {
         this.input = input;
         this.count = 0;
     }
 
+    
+    /** 
+     * returns the nfa 
+     * based on the getNFA method
+     * @return NFA 
+     */
     @Override
     public NFA getNFA() {
         return regex();
     }
 
+    
+    /** 
+     * Creates nfa aafter parsing 
+     * through the regular expression
+     * @return NFA
+     */
     private NFA regex() {
         NFA term = term();
 
@@ -50,6 +74,11 @@ public class RE implements REInterface{
         }
     }
 
+    
+    /** 
+     * Used to build the regular expression
+     * @return NFA
+     */
     private NFA term() {
         NFA factor = new NFA();
 
@@ -65,6 +94,11 @@ public class RE implements REInterface{
         return factor;
     }
 
+    
+    /** 
+     * returns base
+     * @return NFA
+     */
     private NFA factor() {
 
         NFA base = base();
@@ -75,6 +109,14 @@ public class RE implements REInterface{
         return base;
     }
 
+    
+    /** 
+     * This is the method that
+     * will determine the ablity
+     * of the * operator.
+     * @param base 
+     * @return NFA
+     */
     private NFA repetition(NFA base) {
         NFA nfa = new NFA();
 
@@ -108,6 +150,14 @@ public class RE implements REInterface{
 
     }
 
+    
+    /** 
+     * concats two nfas together
+     * to form the final nfa.
+     * @param n1 first nfa
+     * @param n2 second nfa
+     * @return NFA
+     */
     private NFA concat(NFA n1, NFA n2) {
         Set<State> n1Finals = n1.getFinalStates();
 
@@ -125,6 +175,14 @@ public class RE implements REInterface{
 
     
     
+    
+    /** 
+     * Makes an nfa with the 
+     * character recieved in
+     * the constructor
+     * @param n character recieved as char
+     * @return NFA
+     */
     private NFA newNFA(char n) {
         NFA nfa = new NFA();
         
@@ -145,6 +203,13 @@ public class RE implements REInterface{
 
     }
 
+    
+    /** 
+     * This method checks for 
+     * precedents based on the
+     * "()" characters
+     * @return NFA
+     */
     private NFA base() {
         if (peek() == '(') {
             eat('(');
@@ -157,10 +222,23 @@ public class RE implements REInterface{
          
     }
 
+    
+    /** 
+     * returns first character
+     * of the regular expression
+     * @return char
+     */
     private char peek() {
         return input.charAt(0);
     }
 
+    
+    /** 
+     * Ensures that non viable characters
+     * do not get added to the regular
+     * expression
+     * @param c
+     */
     private void eat(char c) {
         if (peek() == c) {
             input = input.substring(1);
@@ -170,12 +248,25 @@ public class RE implements REInterface{
         }
     }
 
+    
+    /** 
+     * Removes character from
+     * the regular expression 
+     * and returns it.
+     * @return char
+     */
     private char next() {
         char c = peek();
         eat(c);
         return c;
     }
     
+    
+    /** 
+     * Checks if there are more characters
+     * left in the regular expression
+     * @return boolean
+     */
     private boolean more() {
         return input.length() > 0;
     }
